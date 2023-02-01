@@ -59,9 +59,8 @@ COPY ./config/php/custom.ini /usr/local/etc/php/conf.d
 COPY ./config/php/pool.d/custom.conf /usr/local/etc/php/conf.d
 
 COPY ./config/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY configure.sh /configure.sh
 COPY supervisord.conf /etc/supervisord.conf
 
 EXPOSE 80/tcp
-RUN sh /configure.sh
+
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
