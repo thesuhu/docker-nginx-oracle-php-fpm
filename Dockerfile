@@ -50,9 +50,7 @@ RUN docker-php-ext-install zip pdo_mysql mysqli tokenizer bcmath opcache pcntl \
     && docker-php-ext-configure oci8 --with-oci8=instantclient,/usr/lib/oracle/instantclient_19_3 \
     && docker-php-ext-install -j$(nproc) oci8 \
     # Install the PHP gd library
-    && docker-php-ext-configure gd \
-    --with-jpeg-dir=/usr/lib \
-    --with-freetype-dir=/usr/include/freetype2 && \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg && \
     docker-php-ext-install gd
 
 # custom config php		
