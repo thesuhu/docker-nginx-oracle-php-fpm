@@ -58,7 +58,7 @@ RUN docker-php-ext-install zip pdo_mysql mysqli tokenizer bcmath opcache pcntl \
 COPY ./config/php/custom.ini /usr/local/etc/php/conf.d
 COPY ./config/php/pool.d/custom.conf /usr/local/etc/php/conf.d
 
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY ./config/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY configure.sh /configure.sh
 COPY supervisord.conf /etc/supervisord.conf
 
