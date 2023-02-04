@@ -1,7 +1,7 @@
 # docker-nginx-oracle-php-fpm
 Docker image to run PHP and Nginx with Oracle client
 
-## usage
+## Usage
 
 Pull the latest image from Docker hub.
 
@@ -20,5 +20,9 @@ Or you can build new image with your web files. Just create `Dockerfile` file an
 ```
 FROM thesuhu/docker-nginx-oracle-php-fpm
 
-COPY myweb /var/www/html/public
+COPY myweb /var/www/html
 ```
+
+## Release
+
+The latest Docker image use PHP version 7.3 and NGINX version 1.23. If you need another version, you can fork and edit the `Dockerfile` and then build for your own.
