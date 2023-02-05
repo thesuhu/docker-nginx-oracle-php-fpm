@@ -31,9 +31,10 @@ COPY myweb /var/www/html
 
 ## Release
 
-The latest Docker image use PHP version 7.4 and NGINX version 1.23. You can pull other version. The following version are available:
+The latest Docker image use PHP version 8.2 and NGINX version 1.23. You can pull other version. The following version are available:
 
 - PHP 7.3 and NGINX 1.23
-- PHP 7.4 and NGINX 1.23 (latest)
+- PHP 7.4 and NGINX 1.23
+- PHP 8.2 and NGINX 1.23 (latest)
 
 If you need another version, you can fork and edit the `Dockerfile` and then build for your own.
