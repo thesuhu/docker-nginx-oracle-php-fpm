@@ -1,5 +1,5 @@
-#FROM php:7.4-fpm-buster
-FROM php:7.3-fpm-buster
+#FROM php:7.3-fpm-buster
+FROM php:7.4-fpm-buster
 
 # setup user and group
 RUN set -x \
@@ -73,13 +73,13 @@ RUN docker-php-ext-install zip pdo_mysql mysqli tokenizer bcmath opcache pcntl \
 # install the PHP gd library
 # PHP 7.4
 # issue on PHP 7.4, fix: https://github.com/docker-library/php/issues/912#issuecomment-559918036
-# RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
-#     docker-php-ext-install gd    
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
+    docker-php-ext-install gd    
 # PHP 7.3
-RUN docker-php-ext-configure gd \
-    --with-jpeg-dir=/usr/lib \
-    --with-freetype-dir=/usr/include/freetype2 && \
-    docker-php-ext-install gd
+# RUN docker-php-ext-configure gd \
+#     --with-jpeg-dir=/usr/lib \
+#     --with-freetype-dir=/usr/include/freetype2 && \
+#     docker-php-ext-install gd
 
 # forward request and error logs to docker log collector
 RUN ln -sf /dev/stdout /var/log/nginx/access.log \

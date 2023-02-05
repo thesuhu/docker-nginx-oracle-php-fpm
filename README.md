@@ -15,6 +15,12 @@ If you want to serve your web directly from host, just mount your web directory 
 docker run -itd -p 8080:80  --name myweb -v ~/myweb:/var/www/html thesuhu/docker-nginx-oracle-php-fpm:<version>
 ```
 
+If you have permission issue with your web directory, try to change the permission to `777` before running container.
+
+```sh
+chmod 777 -R myweb
+```
+
 Or you can build new image with your web files. Just create `Dockerfile` file and then build new image.
 
 ```
