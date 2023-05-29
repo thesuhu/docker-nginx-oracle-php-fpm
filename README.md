@@ -23,7 +23,7 @@ chmod 777 -R myweb
 
 Or you can build new image with your web files. Just create `Dockerfile` file and then build new image.
 
-```
+```sh
 FROM thesuhu/docker-nginx-oracle-php-fpm
 
 COPY myweb /var/www/html
