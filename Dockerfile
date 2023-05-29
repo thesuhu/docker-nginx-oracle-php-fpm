@@ -1,6 +1,6 @@
 #FROM php:7.3-fpm-buster
 #FROM php:7.4-fpm-buster
-FROM php:8.2-fpm-buster
+FROM php:8.1-fpm-buster
 
 # setup user and group
 RUN set -x \
