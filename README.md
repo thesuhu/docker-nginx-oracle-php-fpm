@@ -36,7 +36,7 @@ The latest Docker image use PHP version 8.2 and NGINX version 1.23. You can pull
 - PHP 7.3 and NGINX 1.23
 - PHP 7.4 and NGINX 1.23
 - PHP 8.1 and NGINX 1.23
-- PHP 8.2 and NGINX 1.23
+- PHP 8.2 and NGINX 1.27
 - PHP 8.2.27 and NGINX 1.27 (latest)
 
 If you need another version, you can fork and edit the `Dockerfile` and then build for your own.
