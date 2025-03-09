@@ -1,7 +1,8 @@
 #FROM php:7.3-fpm-buster
 #FROM php:7.4-fpm-buster
 #FROM php:8.1-fpm-buster
-FROM php:8.2-fpm-buster
+#FROM php:8.2-fpm-buster
+FROM php:8.2.27-fpm-bookworm
 
 # setup user and group
 RUN set -x \
@@ -10,23 +11,22 @@ RUN set -x \
 
 # create a docker-entrypoint.d directory
 RUN mkdir /entrypoint.d
-
 COPY entrypoint.sh /
 COPY scripts/10-default-listen-on-ipv6.sh /entrypoint.d
 COPY scripts/20-envsubst-on-template.sh /entrypoint.d
 COPY scripts/30-tune-worker-process.sh /entrypoint.d
-
 RUN chmod +x /entrypoint.d/10-default-listen-on-ipv6.sh \
     && chmod +x /entrypoint.d/20-envsubst-on-template.sh \
     && chmod +x /entrypoint.d/30-tune-worker-process.sh \
     && chmod +x /entrypoint.sh
-
+    
 # install dependencies
 RUN apt-get update \
     && apt-get install -y apt-utils gnupg \
-    && echo "deb http://nginx.org/packages/mainline/debian/ buster nginx" >> /etc/apt/sources.list \
-    && echo "deb-src http://nginx.org/packages/mainline/debian/ buster nginx" >> /etc/apt/sources.list \
-    && curl -fsSL https://nginx.org/keys/nginx_signing.key | apt-key add - \
+    && echo "deb http://nginx.org/packages/mainline/debian/ bookworm nginx" > /etc/apt/sources.list.d/nginx.list \
+    && echo "deb-src http://nginx.org/packages/mainline/debian/ bookworm nginx" >> /etc/apt/sources.list.d/nginx.list \
+    && curl -fsSL https://nginx.org/keys/nginx_signing.key | gpg --dearmor > /usr/share/keyrings/nginx-archive-keyring.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/mainline/debian/ bookworm nginx" > /etc/apt/sources.list.d/nginx.list \
     && apt-get update \
     && apt-get install -y nginx \
     supervisor \
@@ -46,7 +46,6 @@ RUN apt-get update \
     libaio1 \
     libzip-dev \
     nano 
-
 RUN apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
     && rm /var/log/lastlog /var/log/faillog
@@ -57,7 +56,7 @@ RUN php composer-setup.php --install-dir=/usr/local/bin --filename=composer
 RUN composer --version
 RUN php -r "unlink('composer-setup.php');"
 
-# install oracle client	
+# install oracle client
 RUN curl -o instantclient-basic-193000.zip https://download.oracle.com/otn_software/linux/instantclient/193000/instantclient-basic-linux.x64-19.3.0.0.0dbru.zip \
     && unzip instantclient-basic-193000.zip -d /usr/lib/oracle/ \
     && rm instantclient-basic-193000.zip \
@@ -76,8 +75,7 @@ RUN docker-php-ext-install zip pdo_mysql mysqli \
     && docker-php-ext-install -j$(nproc) oci8 
 
 # install the PHP gd library
-# PHP 7.4
-# issue on PHP 7.4, fix: https://github.com/docker-library/php/issues/912#issuecomment-559918036
+# PHP 7.4 and PHP 8.x
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
     docker-php-ext-install gd    
 # PHP 7.3
