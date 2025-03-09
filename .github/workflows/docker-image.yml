@@ -1,15 +1,11 @@
 name: Docker Image CI
-
 on:
   #push:
     #branches: [ master ]
   pull_request:
     branches: [ master ]
-
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
     
     steps:
@@ -22,8 +18,13 @@ jobs:
         docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
         
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag thesuhu/docker-nginx-oracle-php-fpm:8.2
+      run: |
+        docker build . --file Dockerfile --tag ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:8.2.27
+        docker tag ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:8.2.27 ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:8.2
+        docker tag ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:8.2.27 ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:latest
      
     - name: Docker Push
-      run: docker push ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:8.2
-      
+      run: |
+        docker push ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:8.2.27
+        docker push ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:8.2
+        docker push ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:latest
