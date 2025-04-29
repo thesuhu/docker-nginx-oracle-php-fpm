@@ -71,6 +71,7 @@ RUN docker-php-ext-install zip pdo_mysql mysqli \
     # installed by default since PHP 8.1, enable this if PHP 7.3, PHP 7.4
     # tokenizer 
     bcmath opcache pcntl \
+    ftp \
     && docker-php-ext-configure oci8 --with-oci8=instantclient,/usr/lib/oracle/instantclient_19_3 \
     && docker-php-ext-install -j$(nproc) oci8 
 
