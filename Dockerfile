@@ -38,6 +38,7 @@ RUN apt-get update \
     libpng-dev \
     libfreetype6-dev \
     libssl-dev \
+    libssl3 \
     libmcrypt-dev \
     libxml2-dev \
     zip \
