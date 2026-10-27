@@ -2,7 +2,10 @@
 #FROM php:7.4-fpm-buster
 #FROM php:8.1-fpm-buster
 #FROM php:8.2-fpm-buster
-FROM php:8.2.27-fpm-bookworm
+FROM php:8.2.35-fpm-bookworm
+
+# Pin the stable NGINX package for Debian Bookworm.
+ARG NGINX_VERSION=1.30.6-1~bookworm
 
 # setup user and group
 RUN set -x \
@@ -23,12 +26,10 @@ RUN chmod +x /entrypoint.d/10-default-listen-on-ipv6.sh \
 # install dependencies
 RUN apt-get update \
     && apt-get install -y apt-utils gnupg \
-    && echo "deb http://nginx.org/packages/mainline/debian/ bookworm nginx" > /etc/apt/sources.list.d/nginx.list \
-    && echo "deb-src http://nginx.org/packages/mainline/debian/ bookworm nginx" >> /etc/apt/sources.list.d/nginx.list \
     && curl -fsSL https://nginx.org/keys/nginx_signing.key | gpg --dearmor > /usr/share/keyrings/nginx-archive-keyring.gpg \
-    && echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/mainline/debian/ bookworm nginx" > /etc/apt/sources.list.d/nginx.list \
+    && echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] https://nginx.org/packages/debian/ bookworm nginx" > /etc/apt/sources.list.d/nginx.list \
     && apt-get update \
-    && apt-get install -y nginx \
+    && apt-get install -y "nginx=${NGINX_VERSION}" \
     supervisor \
     libmemcached-dev \
     libz-dev \
@@ -101,5 +102,7 @@ RUN rm -Rf /etc/nginx/nginx.conf \
 COPY config/supervisord.conf /etc/supervisord.conf
 COPY config/nginx.conf /etc/nginx/nginx.conf
 COPY config/nginx-default.conf /etc/nginx/conf.d/default.conf
+
+RUN nginx -t && php-fpm -t
 
 CMD ["/entrypoint.sh"]
