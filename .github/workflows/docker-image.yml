@@ -6,9 +6,22 @@ on:
     branches: [ master ]
 jobs:
   build:
+    name: Build PHP ${{ matrix.php_version }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php_version: '8.2.35'
+            php_series: '8.2'
+            dockerfile: Dockerfile
+          - php_version: '7.3.33'
+            php_series: '7.3'
+            dockerfile: Dockerfile.php73
     env:
-      PHP_VERSION: '8.2.35'
+      PHP_VERSION: ${{ matrix.php_version }}
+      PHP_SERIES: ${{ matrix.php_series }}
+      DOCKERFILE: ${{ matrix.dockerfile }}
       NGINX_VERSION: '1.30.7'
       IMAGE_NAME: ${{ secrets.DOCKER_USER }}/docker-nginx-oracle-php-fpm
     
@@ -23,9 +36,7 @@ jobs:
         
     - name: Build the Docker image
       run: |
-        docker build --pull . --file Dockerfile --tag ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:8.2.35
-        docker tag ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:8.2.35 ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:8.2
-        docker tag ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:8.2.35 ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:latest
+        docker build --pull --platform linux/amd64 . --file "$DOCKERFILE" --tag "$IMAGE_NAME:$PHP_VERSION" --tag "$IMAGE_NAME:$PHP_SERIES"
 
     - name: Smoke test NGINX and PHP-FPM
       run: |
@@ -33,6 +44,7 @@ jobs:
         trap 'docker rm -f php-smoke' EXIT
         docker exec php-smoke nginx -t
         docker exec php-smoke php-fpm -t
+        docker exec php-smoke php -r 'exit(extension_loaded("oci8") ? 0 : 1);'
         nginx_version="$(docker exec php-smoke nginx -v 2>&1)"
         printf '%s\n' "$nginx_version"
         test "$nginx_version" = "nginx version: nginx/$NGINX_VERSION"
@@ -49,6 +61,11 @@ jobs:
      
     - name: Docker Push
       run: |
-        docker push ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:8.2.35
-        docker push ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:8.2
-        docker push ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:latest
+        docker push "$IMAGE_NAME:$PHP_VERSION"
+        docker push "$IMAGE_NAME:$PHP_SERIES"
+
+    - name: Publish latest (PHP 8.2 only)
+      if: matrix.php_series == '8.2'
+      run: |
+        docker tag "$IMAGE_NAME:$PHP_VERSION" "$IMAGE_NAME:latest"
+        docker push "$IMAGE_NAME:latest"
