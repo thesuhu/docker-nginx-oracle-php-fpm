@@ -39,10 +39,13 @@ Current build:
 | PHP | NGINX | Base OS | Image tags |
 | --- | --- | --- | --- |
 | **8.2.35** | **1.30.7 stable** | Debian Bookworm | `8.2.35`, `8.2`, `latest` |
+| 7.3.33 (legacy, unsupported PHP) | **1.30.7 stable** | Debian Buster | `7.3.33`, `7.3` |
 
-The release workflow builds and publishes these tags. NGINX is installed from the official stable repository, pinned to Debian package `1.30.7-1~bookworm` via the `NGINX_VERSION` build argument.
+The release workflow builds and smoke-tests each PHP variant independently, then publishes its version tags. **`latest` follows PHP 8.2 only.** The PHP 7.3 job publishes only `7.3.33` and `7.3`.
 
-Historical releases (the versions below describe older images):
+The PHP 8.2 Dockerfile installs NGINX from the official stable repository, pinned to Debian package `1.30.7-1~bookworm` via the `NGINX_VERSION` build argument.
+
+Historical releases (previous contents of these tags):
 
 - PHP 7.3 and NGINX 1.23
 - PHP 7.4 and NGINX 1.23
@@ -65,7 +68,21 @@ docker run --rm --platform linux/amd64 --entrypoint nginx thesuhu/docker-nginx-o
 docker run --rm --platform linux/amd64 --entrypoint nginx thesuhu/docker-nginx-oracle-php-fpm:8.2.35 -t
 ```
 
-Before publishing, CI starts a temporary container, validates NGINX and PHP-FPM configuration, and checks that `nginx -v` reports exactly 1.30.7. It creates a small PHP probe inside that container and requests it through NGINX to verify that PHP-FPM serves PHP 8.2.35 over HTTP. A failed check prevents publishing. The probe is removed with the temporary container and is not included in the published image.
+Before publishing each variant, CI starts a temporary container, validates NGINX and PHP-FPM configuration, checks that OCI8 is loaded, and checks that `nginx -v` reports exactly 1.30.7. It creates a small PHP probe inside that container and requests it through NGINX to verify that PHP-FPM serves the selected PHP version over HTTP. A failed check prevents that variant from being published. The probe is removed with the temporary container and is not included in the published image.
+
+## Legacy PHP 7.3: NGINX update only
+
+`Dockerfile.php73` updates NGINX to 1.30.7 while retaining PHP 7.3.33, its extensions, Oracle Instant Client, Supervisor, and configuration from the original `7.3` image. That original image is pinned by digest to prevent later builds from using the updated tag as their own base.
+
+NGINX does not publish 1.30.7 packages for Debian Buster. The legacy Dockerfile builds NGINX from the [official source](https://nginx.org/en/docs/configure.html), verifies a pinned SHA-256 checksum, and uses the archived Debian repositories for build dependencies. It replaces the NGINX executable while keeping the legacy configuration; use `nginx -v` to check the version because the original Debian package metadata is retained.
+
+```sh
+docker build --pull --platform linux/amd64 -f Dockerfile.php73 -t thesuhu/docker-nginx-oracle-php-fpm:7.3 .
+docker run --rm --platform linux/amd64 --entrypoint nginx thesuhu/docker-nginx-oracle-php-fpm:7.3 -v
+docker run --rm --platform linux/amd64 --entrypoint php-fpm thesuhu/docker-nginx-oracle-php-fpm:7.3 -v
+```
+
+**This updates NGINX only. PHP 7.3 and Debian Buster remain unsupported, and this image does not include a PHP2Shell fix for PHP 7.3.** Migrate applications to the patched PHP 8.2 image or obtain maintained PHP and OS backports from a vendor. Recreate running `7.3` containers after pulling the rebuilt image to apply the NGINX update.
 
 ## PHP2Shell security update
 
