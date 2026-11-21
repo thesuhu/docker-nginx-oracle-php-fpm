@@ -7,6 +7,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      PHP_VERSION: '8.2.35'
+      NGINX_VERSION: '1.30.7'
+      IMAGE_NAME: ${{ secrets.DOCKER_USER }}/docker-nginx-oracle-php-fpm
     
     steps:
     - uses: actions/checkout@v2
@@ -22,6 +26,26 @@ jobs:
         docker build --pull . --file Dockerfile --tag ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:8.2.35
         docker tag ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:8.2.35 ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:8.2
         docker tag ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:8.2.35 ${{secrets.DOCKER_USER}}/docker-nginx-oracle-php-fpm:latest
+
+    - name: Smoke test NGINX and PHP-FPM
+      run: |
+        docker run -d --name php-smoke "$IMAGE_NAME:$PHP_VERSION"
+        trap 'docker rm -f php-smoke' EXIT
+        docker exec php-smoke nginx -t
+        docker exec php-smoke php-fpm -t
+        nginx_version="$(docker exec php-smoke nginx -v 2>&1)"
+        printf '%s\n' "$nginx_version"
+        test "$nginx_version" = "nginx version: nginx/$NGINX_VERSION"
+        docker exec php-smoke sh -c 'printf "<?php echo PHP_VERSION;" > /var/www/html/__ci_php_smoke.php'
+        for attempt in $(seq 1 30); do
+          if docker exec php-smoke curl -fsS --connect-timeout 1 --max-time 2 http://127.0.0.1/__ci_php_smoke.php > "$RUNNER_TEMP/php-version.txt"; then
+            test "$(cat "$RUNNER_TEMP/php-version.txt")" = "$PHP_VERSION"
+            exit 0
+          fi
+          sleep 1
+        done
+        docker logs php-smoke
+        exit 1
      
     - name: Docker Push
       run: |

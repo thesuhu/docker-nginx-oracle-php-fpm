@@ -5,7 +5,7 @@
 FROM php:8.2.35-fpm-bookworm
 
 # Pin the stable NGINX package for Debian Bookworm.
-ARG NGINX_VERSION=1.30.6-1~bookworm
+ARG NGINX_VERSION=1.30.7-1~bookworm
 
 # setup user and group
 RUN set -x \

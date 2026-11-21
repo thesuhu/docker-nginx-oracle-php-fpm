@@ -1,4 +1,7 @@
 # docker-nginx-oracle-php-fpm
+
+![GitHub workflow](https://github.com/thesuhu/docker-nginx-oracle-php-fpm/actions/workflows/docker-image.yml/badge.svg) ![Docker pull](https://img.shields.io/docker/pulls/thesuhu/docker-nginx-oracle-php-fpm)
+
 Docker image to run PHP and Nginx with Oracle client
 
 ## Usage
@@ -35,9 +38,9 @@ Current build:
 
 | PHP | NGINX | Base OS | Image tags |
 | --- | --- | --- | --- |
-| **8.2.35** | **1.30.6 stable** | Debian Bookworm | `8.2.35`, `8.2`, `latest` |
+| **8.2.35** | **1.30.7 stable** | Debian Bookworm | `8.2.35`, `8.2`, `latest` |
 
-The release workflow builds and publishes these tags. NGINX is installed from the official stable repository, pinned to Debian package `1.30.6-1~bookworm` via the `NGINX_VERSION` build argument.
+The release workflow builds and publishes these tags. NGINX is installed from the official stable repository, pinned to Debian package `1.30.7-1~bookworm` via the `NGINX_VERSION` build argument.
 
 Historical releases (the versions below describe older images):
 
@@ -51,9 +54,9 @@ If you need another version, you can fork and edit the `Dockerfile` and then bui
 
 ## NGINX stable version and compatibility
 
-As of 28 October 2026, the latest stable NGINX release is **1.30.6**. See the [official downloads](https://nginx.org/en/download.html) and [stable changelog](https://nginx.org/en/CHANGES-1.30). The Dockerfile uses the stable Debian repository at `https://nginx.org/packages/debian/`.
+As of 21 November 2026, the latest stable NGINX release is **1.30.7**. This update incorporates the security fixes listed in the [stable changelog](https://nginx.org/en/CHANGES-1.30). See the [official downloads](https://nginx.org/en/download.html). The Dockerfile uses the stable Debian repository at `https://nginx.org/packages/debian/`.
 
-A review of the bundled NGINX 1.27 configuration against the changelog found no required directive changes for 1.30.6: FastCGI, caching, gzip, real IP handling, and the Laravel HTTPS map remain supported. NGINX 1.29.7 changed HTTP proxy defaults to HTTP/1.1 with keepalive; the bundled PHP upstream uses `fastcgi_pass`. NGINX 1.29.4 also changed Host validation and rejects bare LF line endings in chunked bodies, so clients sending malformed requests can observe different behavior.
+A review of the bundled NGINX 1.27 configuration against the changelog found no required directive changes for 1.30.7: FastCGI, caching, gzip, real IP handling, and the Laravel HTTPS map remain supported. NGINX 1.29.7 changed HTTP proxy defaults to HTTP/1.1 with keepalive; the bundled PHP upstream uses `fastcgi_pass`. NGINX 1.29.4 also changed Host validation and rejects bare LF line endings in chunked bodies, so clients sending malformed requests can observe different behavior.
 
 The Dockerfile runs `nginx -t` and `php-fpm -t` after copying the configuration, so configuration errors fail the build. Application routing, authenticated responses, and cache behavior still need runtime verification. Check the installed version and configuration before deployment:
 
@@ -61,6 +64,8 @@ The Dockerfile runs `nginx -t` and `php-fpm -t` after copying the configuration,
 docker run --rm --platform linux/amd64 --entrypoint nginx thesuhu/docker-nginx-oracle-php-fpm:8.2.35 -v
 docker run --rm --platform linux/amd64 --entrypoint nginx thesuhu/docker-nginx-oracle-php-fpm:8.2.35 -t
 ```
+
+Before publishing, CI starts a temporary container, validates NGINX and PHP-FPM configuration, and checks that `nginx -v` reports exactly 1.30.7. It creates a small PHP probe inside that container and requests it through NGINX to verify that PHP-FPM serves PHP 8.2.35 over HTTP. A failed check prevents publishing. The probe is removed with the temporary container and is not included in the published image.
 
 ## PHP2Shell security update
 
@@ -77,6 +82,7 @@ Recreate deployed containers using the rebuilt image; restarting a container usi
 
 ```sh
 docker exec myweb php -v
+docker exec myweb nginx -v
 ```
 
 The reported version should be PHP 8.2.35.
