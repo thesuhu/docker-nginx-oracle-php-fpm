@@ -1,4 +1,7 @@
 # docker-nginx-oracle-php-fpm
+
+![GitHub workflow](https://github.com/thesuhu/docker-nginx-oracle-php-fpm/actions/workflows/docker-image.yml/badge.svg) ![Docker pull](https://img.shields.io/docker/pulls/thesuhu/docker-nginx-oracle-php-fpm)
+
 Docker image to run PHP and Nginx with Oracle client
 
 ## Usage
